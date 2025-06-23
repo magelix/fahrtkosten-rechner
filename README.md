@@ -17,7 +17,7 @@ Ein Laravel-basierter Rechner für Fahrtkosten zu entfernten Arbeitsplätzen, sp
 
 ```bash
 # Repository klonen
-git clone https://github.com/yourusername/fahrtkosten-rechner.git
+git clone https://github.com/magelix/fahrtkosten-rechner.git
 cd fahrtkosten-rechner
 
 # Docker Container starten
@@ -145,7 +145,7 @@ Dieses Projekt steht unter der [MIT Lizenz](LICENSE).
 ## 🙋‍♂️ Support
 
 Bei Fragen oder Problemen:
-- Erstelle ein [Issue](https://github.com/yourusername/fahrtkosten-rechner/issues)
+- Erstelle ein [Issue](https://github.com/magelix/fahrtkosten-rechner/issues)
 - Oder kontaktiere uns direkt
 
 ---

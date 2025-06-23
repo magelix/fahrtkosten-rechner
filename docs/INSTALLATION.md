@@ -5,7 +5,7 @@
 ### 1. Repository klonen
 
 ```bash
-git clone https://github.com/yourusername/fahrtkosten-rechner.git
+git clone https://github.com/magelix/fahrtkosten-rechner.git
 cd fahrtkosten-rechner
 ```
 
