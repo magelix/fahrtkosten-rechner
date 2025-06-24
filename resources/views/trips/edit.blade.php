@@ -47,8 +47,11 @@
         <div class="col-md-4">
             <div class="mb-3">
                 <label for="departure_date" class="form-label">Abreise-Datum</label>
-                <input type="date" class="form-control @error('departure_date') is-invalid @enderror" 
-                       id="departure_date" name="departure_date" value="{{ old('departure_date', $trip->departure_date->format('Y-m-d')) }}" required>
+                <div class="date-input-wrapper @error('departure_date') is-invalid @enderror">
+                    <input type="date" class="form-control" id="departure_date" name="departure_date" value="{{ old('departure_date', $trip->departure_date->format('Y-m-d')) }}" required>
+                    <div class="date-display" id="departure_date_display">dd.mm.yyyy</div>
+                    <i class="calendar-icon">📅</i>
+                </div>
                 @error('departure_date')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -58,8 +61,11 @@
         <div class="col-md-4">
             <div class="mb-3">
                 <label for="return_date" class="form-label">Rückkehr-Datum</label>
-                <input type="date" class="form-control @error('return_date') is-invalid @enderror" 
-                       id="return_date" name="return_date" value="{{ old('return_date', $trip->return_date->format('Y-m-d')) }}" required>
+                <div class="date-input-wrapper @error('return_date') is-invalid @enderror">
+                    <input type="date" class="form-control" id="return_date" name="return_date" value="{{ old('return_date', $trip->return_date->format('Y-m-d')) }}" required>
+                    <div class="date-display" id="return_date_display">dd.mm.yyyy</div>
+                    <i class="calendar-icon">📅</i>
+                </div>
                 @error('return_date')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -106,6 +112,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const departureInput = document.getElementById('departure_date');
     const returnInput = document.getElementById('return_date');
     const overnightInput = document.getElementById('overnight_days');
+    const departureDisplay = document.getElementById('departure_date_display');
+    const returnDisplay = document.getElementById('return_date_display');
+    
+    function formatDateSwiss(dateStr) {
+        if (!dateStr) return 'dd.mm.yyyy';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('de-CH');
+    }
+    
+    function updateDateDisplay() {
+        departureDisplay.textContent = formatDateSwiss(departureInput.value);
+        returnDisplay.textContent = formatDateSwiss(returnInput.value);
+    }
     
     function calculateOvernightDays() {
         const departureDate = new Date(departureInput.value);
@@ -131,8 +150,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    departureInput.addEventListener('change', calculateOvernightDays);
-    returnInput.addEventListener('change', calculateOvernightDays);
+    departureInput.addEventListener('change', function() {
+        updateDateDisplay();
+        calculateOvernightDays();
+    });
+    returnInput.addEventListener('change', function() {
+        updateDateDisplay();
+        calculateOvernightDays();
+    });
+    
+    // Initial display update
+    updateDateDisplay();
+    
+    // Make calendar icons clickable
+    document.querySelectorAll('.calendar-icon').forEach(function(icon) {
+        icon.addEventListener('click', function() {
+            const wrapper = this.parentElement;
+            const dateInput = wrapper.querySelector('input[type="date"]');
+            dateInput.showPicker();
+        });
+    });
 });
 </script>
 @endsection
