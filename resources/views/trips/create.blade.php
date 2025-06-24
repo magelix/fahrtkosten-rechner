@@ -79,6 +79,7 @@
                 @error('overnight_days')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
+                <div class="form-text">Wird automatisch basierend auf den Daten errechnet, kann überschrieben werden</div>
             </div>
         </div>
         
@@ -106,6 +107,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const workplaceSelect = document.getElementById('workplace_id');
     const distanceInput = document.getElementById('distance_km');
     const costInput = document.getElementById('cost_per_km');
+    const departureInput = document.getElementById('departure_date');
+    const returnInput = document.getElementById('return_date');
+    const overnightInput = document.getElementById('overnight_days');
+    
+    function calculateOvernightDays() {
+        const departureDate = new Date(departureInput.value);
+        const returnDate = new Date(returnInput.value);
+        
+        if (departureDate && returnDate && returnDate > departureDate) {
+            const timeDiff = returnDate - departureDate;
+            const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            const overnights = Math.max(0, daysDiff);
+            overnightInput.value = overnights;
+        }
+    }
     
     workplaceSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
@@ -118,6 +134,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (cost) costInput.value = cost;
         }
     });
+    
+    departureInput.addEventListener('change', calculateOvernightDays);
+    returnInput.addEventListener('change', calculateOvernightDays);
 });
 </script>
 @endsection

@@ -36,4 +36,14 @@ class Trip extends Model
     {
         return $this->distance_km * 2 * $this->cost_per_km;
     }
+
+    public function calculateOvernightDays(): int
+    {
+        if (!$this->departure_date || !$this->return_date) {
+            return 0;
+        }
+        
+        $days = $this->departure_date->diffInDays($this->return_date);
+        return max(0, $days);
+    }
 }
