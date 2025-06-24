@@ -14,13 +14,15 @@ class Workplace extends Model
         'address',
         'default_distance_km',
         'default_cost_per_km',
-        'is_active'
+        'is_active',
+        'is_default'
     ];
 
     protected $casts = [
         'default_distance_km' => 'decimal:2',
         'default_cost_per_km' => 'decimal:4',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'is_default' => 'boolean'
     ];
 
     public function trips()
@@ -31,5 +33,15 @@ class Workplace extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeDefault($query)
+    {
+        return $query->where('is_default', true);
+    }
+
+    public static function getDefault()
+    {
+        return static::active()->default()->first();
     }
 }

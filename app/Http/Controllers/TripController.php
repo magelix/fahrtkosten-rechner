@@ -19,7 +19,8 @@ class TripController extends Controller
     public function create(): View
     {
         $workplaces = Workplace::active()->orderBy('name')->get();
-        return view('trips.create', compact('workplaces'));
+        $defaultWorkplace = Workplace::getDefault();
+        return view('trips.create', compact('workplaces', 'defaultWorkplace'));
     }
 
     public function store(Request $request): RedirectResponse

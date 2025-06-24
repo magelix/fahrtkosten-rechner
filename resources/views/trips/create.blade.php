@@ -19,7 +19,7 @@
                         <option value="{{ $workplace->id }}" 
                                 data-distance="{{ $workplace->default_distance_km }}"
                                 data-cost="{{ $workplace->default_cost_per_km }}"
-                                {{ old('workplace_id') == $workplace->id ? 'selected' : '' }}>
+                                {{ old('workplace_id', $defaultWorkplace?->id) == $workplace->id ? 'selected' : '' }}>
                             {{ $workplace->name }} - {{ $workplace->address }}
                         </option>
                     @endforeach
@@ -165,6 +165,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial display update
     updateDateDisplay();
+    
+    // Auto-trigger workplace selection if default is selected
+    @if($defaultWorkplace)
+        // Trigger change event to auto-fill distance and cost for default workplace
+        if (workplaceSelect.value === '{{ $defaultWorkplace->id }}') {
+            workplaceSelect.dispatchEvent(new Event('change'));
+        }
+    @endif
     
     // Make calendar icons clickable
     document.querySelectorAll('.calendar-icon').forEach(function(icon) {

@@ -22,6 +22,7 @@
                     <th>Standard-Entfernung</th>
                     <th>Standard-Kosten/km</th>
                     <th>Status</th>
+                    <th>Standard</th>
                     <th>Anzahl Fahrten</th>
                     <th>Aktionen</th>
                 </tr>
@@ -40,6 +41,16 @@
                             <span class="badge bg-success">Aktiv</span>
                         @else
                             <span class="badge bg-secondary">Inaktiv</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($workplace->is_default)
+                            <span class="badge bg-primary">Standard</span>
+                        @else
+                            <form action="{{ route('workplaces.setDefault', $workplace) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Als Standard setzen</button>
+                            </form>
                         @endif
                     </td>
                     <td>{{ $workplace->trips_count ?? 0 }}</td>

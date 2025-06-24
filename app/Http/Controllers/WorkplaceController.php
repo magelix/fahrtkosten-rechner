@@ -68,4 +68,15 @@ class WorkplaceController extends Controller
         $workplace->delete();
         return redirect()->route('workplaces.index')->with('success', 'Arbeitsplatz erfolgreich gelöscht!');
     }
+
+    public function setDefault(Workplace $workplace): RedirectResponse
+    {
+        // Remove default status from all other workplaces
+        Workplace::where('is_default', true)->update(['is_default' => false]);
+        
+        // Set this workplace as default
+        $workplace->update(['is_default' => true]);
+
+        return redirect()->route('workplaces.index')->with('success', 'Standard-Arbeitsplatz erfolgreich gesetzt!');
+    }
 }
