@@ -71,12 +71,29 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('home') }}">Fahrtkosten-Rechner</a>
-            <div class="navbar-nav">
-                <a class="nav-link" href="{{ route('trips.index') }}">Alle Fahrten</a>
-                <a class="nav-link" href="{{ route('trips.create') }}">Neue Fahrt</a>
-                <a class="nav-link" href="{{ route('workplaces.index') }}">Arbeitsplätze</a>
-            </div>
+            <a class="navbar-brand" href="{{ Auth::check() ? route('dashboard') : route('login') }}">Fahrtkosten-Rechner</a>
+            
+            @if(Auth::check())
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                    <a class="nav-link" href="{{ route('trips.index') }}">Alle Fahrten</a>
+                    <a class="nav-link" href="{{ route('trips.create') }}">Neue Fahrt</a>
+                    <a class="nav-link" href="{{ route('workplaces.index') }}">Arbeitsplätze</a>
+                </div>
+                
+                <div class="navbar-nav">
+                    <span class="navbar-text me-3">Hallo, {{ Auth::user()->name }}</span>
+                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-light btn-sm">Abmelden</button>
+                    </form>
+                </div>
+            @else
+                <div class="navbar-nav">
+                    <a class="nav-link" href="{{ route('login') }}">Anmelden</a>
+                    <a class="nav-link" href="{{ route('register') }}">Registrieren</a>
+                </div>
+            @endif
         </div>
     </nav>
 

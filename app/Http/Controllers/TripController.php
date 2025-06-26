@@ -12,14 +12,23 @@ class TripController extends Controller
 {
     public function index(): View
     {
-        $trips = Trip::with('workplace')->orderBy('departure_date', 'desc')->get();
+        $trips = Trip::with('workplace')
+            ->where('user_id', auth()->id())
+            ->orderBy('departure_date', 'desc')
+            ->get();
         return view('trips.index', compact('trips'));
     }
 
     public function create(): View
     {
-        $workplaces = Workplace::active()->orderBy('name')->get();
-        $defaultWorkplace = Workplace::getDefault();
+        $workplaces = Workplace::active()
+            ->where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get();
+        $defaultWorkplace = Workplace::where('user_id', auth()->id())
+            ->active()
+            ->where('is_default', true)
+            ->first();
         return view('trips.create', compact('workplaces', 'defaultWorkplace'));
     }
 
@@ -35,6 +44,7 @@ class TripController extends Controller
         ]);
 
         $validated['total_cost'] = $validated['distance_km'] * 2 * $validated['cost_per_km'];
+        $validated['user_id'] = auth()->id();
 
         Trip::create($validated);
 
@@ -43,18 +53,33 @@ class TripController extends Controller
 
     public function show(Trip $trip): View
     {
+        if ($trip->user_id !== auth()->id()) {
+            abort(403);
+        }
+        
         $trip->load('workplace');
         return view('trips.show', compact('trip'));
     }
 
     public function edit(Trip $trip): View
     {
-        $workplaces = Workplace::active()->orderBy('name')->get();
+        if ($trip->user_id !== auth()->id()) {
+            abort(403);
+        }
+        
+        $workplaces = Workplace::active()
+            ->where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get();
         return view('trips.edit', compact('trip', 'workplaces'));
     }
 
     public function update(Request $request, Trip $trip): RedirectResponse
     {
+        if ($trip->user_id !== auth()->id()) {
+            abort(403);
+        }
+        
         $validated = $request->validate([
             'workplace_id' => 'required|exists:workplaces,id',
             'distance_km' => 'required|numeric|min:0',
@@ -73,12 +98,20 @@ class TripController extends Controller
 
     public function destroy(Trip $trip): RedirectResponse
     {
+        if ($trip->user_id !== auth()->id()) {
+            abort(403);
+        }
+        
         $trip->delete();
         return redirect()->route('trips.index')->with('success', 'Fahrt erfolgreich gelöscht!');
     }
 
     public function getWorkplaceData(Workplace $workplace)
     {
+        if ($workplace->user_id !== auth()->id()) {
+            abort(403);
+        }
+        
         return response()->json([
             'default_distance_km' => $workplace->default_distance_km,
             'default_cost_per_km' => $workplace->default_cost_per_km

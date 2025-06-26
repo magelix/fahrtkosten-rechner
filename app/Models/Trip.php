@@ -10,6 +10,7 @@ class Trip extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'workplace_id',
         'distance_km',
         'departure_date',
@@ -30,6 +31,11 @@ class Trip extends Model
     public function workplace()
     {
         return $this->belongsTo(Workplace::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function calculateTotalCost(): float
