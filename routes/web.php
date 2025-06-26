@@ -23,10 +23,38 @@ Route::get('/email/verify', function () {
     return view('auth.verify-email');
 })->middleware('auth')->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
+Route::get('/email/verify/{id}/{hash}', function (Request $request) {
+    // Check if user is authenticated
+    if (!auth()->check()) {
+        return redirect()->route('login')->withErrors(['email' => 'Sie müssen angemeldet sein, um Ihre E-Mail zu bestätigen.']);
+    }
+    
+    $user = auth()->user();
+    
+    // Check if email is already verified
+    if ($user->hasVerifiedEmail()) {
+        return redirect()->route('dashboard')->with('info', 'Ihre E-Mail-Adresse ist bereits bestätigt.');
+    }
+    
+    // Check if the signature is valid (manual check to avoid 403)
+    if (!$request->hasValidSignature()) {
+        return redirect()->route('verification.notice')->withErrors(['email' => 'Dieser Bestätigungslink ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.']);
+    }
+    
+    // Check if verification link is for this user
+    if (!hash_equals((string) $request->route('id'), (string) $user->getKey())) {
+        return redirect()->route('verification.notice')->withErrors(['email' => 'Dieser Bestätigungslink ist ungültig.']);
+    }
+
+    if (!hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+        return redirect()->route('verification.notice')->withErrors(['email' => 'Dieser Bestätigungslink ist ungültig.']);
+    }
+    
+    // Mark email as verified
+    $user->markEmailAsVerified();
+    
     return redirect()->route('dashboard')->with('success', 'E-Mail-Adresse erfolgreich bestätigt!');
-})->middleware(['auth', 'signed'])->name('verification.verify');
+})->middleware('auth')->name('verification.verify');
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
@@ -50,8 +78,38 @@ Route::post('/forgot-password', function (Request $request) {
                 : back()->withErrors(['email' => 'Wir konnten keinen Benutzer mit dieser E-Mail-Adresse finden.']);
 })->middleware('guest')->name('password.email');
 
-Route::get('/reset-password/{token}', function (string $token) {
-    return view('auth.reset-password', ['token' => $token]);
+Route::get('/reset-password/{token}', function (Request $request, string $token) {
+    $email = $request->get('email');
+    if (!$email) {
+        return redirect()->route('password.request')
+            ->withErrors(['email' => 'Dieser Reset-Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.']);
+    }
+    
+    // Check if the token is valid before showing the form
+    $user = \App\Models\User::where('email', $email)->first();
+    if (!$user) {
+        return redirect()->route('password.request')
+            ->withErrors(['email' => 'Wir konnten keinen Benutzer mit dieser E-Mail-Adresse finden.']);
+    }
+    
+    // Check if token exists in password_reset_tokens table
+    $tokenRecord = \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+        ->where('email', $email)
+        ->first();
+    
+    if (!$tokenRecord || !\Illuminate\Support\Facades\Hash::check($token, $tokenRecord->token)) {
+        return redirect()->route('password.request')
+            ->withErrors(['email' => 'Dieser Reset-Link ist ungültig oder wurde bereits verwendet. Bitte fordern Sie einen neuen an.']);
+    }
+    
+    // Check if token is expired (default: 60 minutes)
+    $expiry = now()->subMinutes(config('auth.passwords.users.expire', 60));
+    if ($tokenRecord->created_at < $expiry) {
+        return redirect()->route('password.request')
+            ->withErrors(['email' => 'Dieser Reset-Link ist abgelaufen. Bitte fordern Sie einen neuen an.']);
+    }
+    
+    return view('auth.reset-password', ['token' => $token, 'email' => $email]);
 })->middleware('guest')->name('password.reset');
 
 Route::post('/reset-password', function (Request $request) {
@@ -79,9 +137,17 @@ Route::post('/reset-password', function (Request $request) {
         }
     );
 
-    return $status === Password::PASSWORD_RESET
-                ? redirect()->route('login')->with('success', 'Ihr Passwort wurde erfolgreich zurückgesetzt!')
-                : back()->withErrors(['email' => 'Es gab ein Problem beim Zurücksetzen Ihres Passworts.']);
+    if ($status === Password::PASSWORD_RESET) {
+        return redirect()->route('login')->with('success', 'Ihr Passwort wurde erfolgreich zurückgesetzt!');
+    }
+
+    $errorMessage = match($status) {
+        Password::INVALID_TOKEN => 'Dieser Reset-Link ist ungültig oder wurde bereits verwendet. Bitte fordern Sie einen neuen an.',
+        Password::INVALID_USER => 'Wir konnten keinen Benutzer mit dieser E-Mail-Adresse finden.',
+        default => 'Es gab ein Problem beim Zurücksetzen Ihres Passworts. Bitte versuchen Sie es erneut.'
+    };
+
+    return back()->withErrors(['email' => $errorMessage]);
 })->middleware('guest')->name('password.update');
 
 // Dashboard route (requires authentication and email verification)
