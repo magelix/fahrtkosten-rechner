@@ -48,6 +48,10 @@ cd fahrtkosten-rechner
 
 # Application Shell
 ./sail shell
+
+# E-Mail Testing mit MailHog
+# MailHog Web Interface: http://localhost:8025
+# SMTP Server: localhost:1025
 ```
 
 ## ✨ Features
@@ -75,6 +79,13 @@ cd fahrtkosten-rechner
 - **Bootstrap UI**: Moderne, saubere Oberfläche
 - **Intuitive Navigation**: Schneller Zugriff auf alle Funktionen
 
+### 🔐 Sicherheit & Authentifizierung
+- **Benutzerregistrierung**: Sichere Kontoerstellung
+- **E-Mail-Verifikation**: Bestätigung der E-Mail-Adresse erforderlich
+- **Session-Management**: Sichere Anmeldung mit "Angemeldet bleiben" Option
+- **Datenschutz**: Jeder Benutzer sieht nur seine eigenen Daten
+- **Passwort-Sicherheit**: Mindestanforderungen und Bestätigung
+
 ## 🗄️ Datenmodell
 
 ### Trip (Fahrt)
@@ -93,6 +104,7 @@ cd fahrtkosten-rechner
 - **Frontend**: Bootstrap 5, Blade Templates, JavaScript
 - **Datenbank**: MySQL 8.0
 - **Container**: Docker + Laravel Sail
+- **E-Mail Testing**: MailHog für lokale Entwicklung
 - **Entwicklung**: Hot Reload, Live Development
 
 ## 📁 Projektstruktur

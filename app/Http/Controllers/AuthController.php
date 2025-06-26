@@ -24,6 +24,12 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $request->session()->regenerate();
+            
+            // Check if email is verified
+            if (!auth()->user()->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
+            
             return redirect()->intended('/');
         }
 
@@ -60,7 +66,10 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard');
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
+
+        return redirect()->route('verification.notice');
     }
 
     public function logout(Request $request)
